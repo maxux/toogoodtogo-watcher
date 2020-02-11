@@ -33,8 +33,6 @@ class TooGoodToGo:
         }
 
         self.bot = telegram.Bot(token=config['telegram-token'])
-        self.destination = config['destination']
-        self.smtp = config['smtp']
 
         # load configuration if exists
         self.load()
@@ -166,22 +164,39 @@ class TooGoodToGo:
             fav = self.favorite()
             self.available(fav)
 
-            # let's pause after 21h00
-            # this pause the script between 21h00 and 6h00
+            #
+            # night pause
+            #
             now = datetime.datetime.now()
-            if now.hour >= config['pause-from']:
-                print("[+] waiting tomorrow (pause for %dh)" % config['pause-for'])
-                time.sleep(config['pause-for'] * 60 * 60)
+            nowint = (now.hour * 100) + now.minute
+
+            if nowint >= config['night-pause-from'] or nowint <= config['night-pause-to']:
+                print("[+] night mode enabled, fetching disabled")
+
+                while nowint >= config['night-pause-from'] or nowint <= config['night-pause-to']:
+                    time.sleep(60)
+
                 print("[+] starting new day")
 
-            # waiting next iteration
-            wait = random.randrange(20, 55)
+            #
+            # speedup or normal waiting time
+            #
+            waitfrom = config['normal-wait-from']
+            waitto = config['normal-wait-to']
+
+            if nowint >= config['speedup-time-from'] and nowint <= config['speedup-time-to']:
+                print("[+] speedup time range enabled")
+                waitfrom = config['speedup-wait-from']
+                waitto = config['speedup-wait-to']
+
+            #
+            # next iteration
+            #
+            wait = random.randrange(waitfrom, waitto)
             print("[+] waiting %d seconds" % wait)
             time.sleep(wait)
 
         self.save()
-
-
 
 if __name__ == '__main__':
     tgtg = TooGoodToGo()
