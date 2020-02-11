@@ -5,6 +5,7 @@ import smtplib
 import random
 import time
 import datetime
+import telegram
 from config import config
 
 class TooGoodToGo:
@@ -31,6 +32,7 @@ class TooGoodToGo:
             'nc': "\033[0m",
         }
 
+        self.bot = telegram.Bot(token=config['telegram-token'])
         self.destination = config['destination']
         self.smtp = config['smtp']
 
@@ -147,19 +149,13 @@ class TooGoodToGo:
             print("[+]")
 
     def notifier(self, item):
-        sender = config['sender']
         name = item['display_name']
         items = item['items_available']
 
-        message = """From: %s <%s>
-        To: <%s>
-        Subject: Merchant available
+        fmt = telegram.ParseMode.MARKDOWN
+        message = "*%s*: %d available" % (name, items)
 
-        Items: %d
-        """ % (name, sender, self.destination, items)
-
-        sm = smtplib.SMTP(self.smtp, 25)
-        sm.sendmail(sender, [self.destination], message.encode('utf-8'))
+        self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
 
     def watch(self):
         if self.config['accesstoken'] is None:
