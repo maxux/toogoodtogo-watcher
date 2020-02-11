@@ -109,8 +109,8 @@ class TooGoodToGo:
         data = {
             'favorites_only': True,
             'origin': {
-                'latitude': 50.632905,
-                'longitude': 5.568583
+                'latitude': config['latitude'],
+                'longitude': config['longitude']
             },
             'radius': 200,
             'user_id': self.config['userid']
