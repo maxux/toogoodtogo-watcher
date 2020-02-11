@@ -4,6 +4,7 @@ import requests
 import smtplib
 import random
 import time
+import datetime
 from config import config
 
 class TooGoodToGo:
@@ -169,6 +170,15 @@ class TooGoodToGo:
             fav = self.favorite()
             self.available(fav)
 
+            # let's pause after 21h00
+            # this pause the script between 21h00 and 6h00
+            now = datetime.datetime.now()
+            if now.hour >= config['pause-from']:
+                print("[+] waiting tomorrow (pause for %dh)" % config['pause-for'])
+                time.sleep(config['pause-for'] * 60 * 60)
+                print("[+] starting new day")
+
+            # waiting next iteration
             wait = random.randrange(20, 55)
             print("[+] waiting %d seconds" % wait)
             time.sleep(wait)
