@@ -155,6 +155,11 @@ class TooGoodToGo:
 
         self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
 
+    def daytime(self):
+        now = datetime.datetime.now()
+        nowint = (now.hour * 100) + now.minute
+        return nowint
+
     def watch(self):
         if self.config['accesstoken'] is None:
             self.login()
@@ -167,13 +172,13 @@ class TooGoodToGo:
             #
             # night pause
             #
-            now = datetime.datetime.now()
-            nowint = (now.hour * 100) + now.minute
+            now = self.daytime()
 
-            if nowint >= config['night-pause-from'] or nowint <= config['night-pause-to']:
+            if now >= config['night-pause-from'] or now <= config['night-pause-to']:
                 print("[+] night mode enabled, fetching disabled")
 
-                while nowint >= config['night-pause-from'] or nowint <= config['night-pause-to']:
+                while now >= config['night-pause-from'] or now <= config['night-pause-to']:
+                    now = self.daytime()
                     time.sleep(60)
 
                 print("[+] starting new day")
@@ -184,7 +189,7 @@ class TooGoodToGo:
             waitfrom = config['normal-wait-from']
             waitto = config['normal-wait-to']
 
-            if nowint >= config['speedup-time-from'] and nowint <= config['speedup-time-to']:
+            if now >= config['speedup-time-from'] and now <= config['speedup-time-to']:
                 print("[+] speedup time range enabled")
                 waitfrom = config['speedup-wait-from']
                 waitto = config['speedup-wait-to']
