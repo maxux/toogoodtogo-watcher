@@ -149,9 +149,10 @@ class TooGoodToGo:
     def notifier(self, item):
         name = item['display_name']
         items = item['items_available']
+        price = item['item']['price']['minor_units'] / 100
 
         fmt = telegram.ParseMode.MARKDOWN
-        message = "*%s*: %d available" % (name, items)
+        message = "*%s*: %d available (%.2f €)" % (name, items, price)
 
         self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
 
