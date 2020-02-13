@@ -120,6 +120,27 @@ class TooGoodToGo:
         r = self.post("/api/item/v3/", data)
         return r.json()
 
+    def datetimeparse(self, datestr):
+        fmt = "%Y-%m-%dT%H:%M:%SZ"
+        value = datetime.datetime.strptime(datestr, fmt)
+        return value.replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
+
+    def issameday(self, d1, d2):
+        return (d1.day == d2.day and d1.month == d2.month and d1.year == d2.year)
+
+    def pickupdate(self, item):
+        now = datetime.datetime.now()
+        pfrom = self.datetimeparse(item['pickup_interval']['start'])
+        pto = self.datetimeparse(item['pickup_interval']['end'])
+
+        prange = "%02d:%02d - %02d:%02d" % (pfrom.hour, pfrom.minute, pto.hour, pto.minute)
+
+        if self.issameday(pfrom, pto):
+            return "Today, %s" % prange
+
+        return "%d/%d, %s" % (pfrom.day, pfrom.month, prange)
+
+
     def available(self, items):
         for item in items['items']:
             name = item['display_name']
@@ -129,20 +150,24 @@ class TooGoodToGo:
 
             print("[+] merchant: %s%s%s" % (self.colors[color], name, self.colors['nc']))
 
+            if item['items_available'] == 0:
+                if self.availables.get(name):
+                    del self.availables[name]
+
+                continue
+
             print("[+]   distance: %.2f km" % item['distance'])
             print("[+]   available: %d" % item['items_available'])
             print("[+]   price: %.2f € [%.2f €]" % (price, value))
+            print("[+]   address: %s" % item['pickup_location']['address']['address_line'])
+            print("[+]   pickup: %s" % self.pickupdate(item))
 
-            if item['items_available'] > 0:
-                if not self.availables.get(name):
-                    print("[+]")
-                    print("[+]   == NEW ITEMS AVAILABLE ==")
-                    self.notifier(item)
-                    self.availables[name] = True
+            if not self.availables.get(name):
+                print("[+]")
+                print("[+]   == NEW ITEMS AVAILABLE ==")
+                self.notifier(item)
+                self.availables[name] = True
 
-            else:
-                if self.availables.get(name):
-                    del self.availables[name]
 
             print("[+]")
 
@@ -150,9 +175,10 @@ class TooGoodToGo:
         name = item['display_name']
         items = item['items_available']
         price = item['item']['price']['minor_units'] / 100
+        pickup = self.pickupdate(item)
 
         fmt = telegram.ParseMode.MARKDOWN
-        message = "*%s*: %d available (%.2f €)" % (name, items, price)
+        message = "*%s*\n*Available*: %d\n*Price*: %.2f €\n*Pickup*: %s" % (name, items, price, pickup)
 
         self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
 
