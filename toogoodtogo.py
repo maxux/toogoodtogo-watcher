@@ -147,12 +147,13 @@ class TooGoodToGo:
             price = item['item']['price']['minor_units'] / 100
             value = item['item']['value']['minor_units'] / 100
             color = "green" if item['items_available'] > 0 else "red"
+            kname = "%s-%.2d" % (name, price)
 
             print("[+] merchant: %s%s%s" % (self.colors[color], name, self.colors['nc']))
 
             if item['items_available'] == 0:
-                if self.availables.get(name):
-                    del self.availables[name]
+                if self.availables.get(kname):
+                    del self.availables[kname]
 
                 continue
 
@@ -162,11 +163,11 @@ class TooGoodToGo:
             print("[+]   address: %s" % item['pickup_location']['address']['address_line'])
             print("[+]   pickup: %s" % self.pickupdate(item))
 
-            if not self.availables.get(name):
+            if not self.availables.get(kname):
                 print("[+]")
                 print("[+]   == NEW ITEMS AVAILABLE ==")
                 self.notifier(item)
-                self.availables[name] = True
+                self.availables[kname] = True
 
 
             print("[+]")
