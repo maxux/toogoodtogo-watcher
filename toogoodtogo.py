@@ -117,8 +117,22 @@ class TooGoodToGo:
             'user_id': self.config['userid']
         }
 
-        r = self.post("/api/item/v3/", data)
-        return r.json()
+        while True:
+            r = self.post("/api/item/v3/", data)
+            if r.status_code == 502:
+                continue
+
+            if r.status_code == 200:
+                return r.json()
+
+            try:
+                r.json()
+
+            except Exception as e:
+                print(r.text)
+                print(e)
+
+            return r.json()
 
     def datetimeparse(self, datestr):
         fmt = "%Y-%m-%dT%H:%M:%SZ"
