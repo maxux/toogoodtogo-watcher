@@ -135,7 +135,7 @@ class TooGoodToGo:
 
         prange = "%02d:%02d - %02d:%02d" % (pfrom.hour, pfrom.minute, pto.hour, pto.minute)
 
-        if self.issameday(pfrom, pto):
+        if self.issameday(pfrom, now):
             return "Today, %s" % prange
 
         return "%d/%d, %s" % (pfrom.day, pfrom.month, prange)
