@@ -7,6 +7,7 @@ import random
 import time
 import datetime
 import telegram
+import base64
 from config import config
 
 class TooGoodToGo:
@@ -15,9 +16,9 @@ class TooGoodToGo:
         self.cfgfile = "%s/.config/tgtgw/config.json" % self.home
 
         # default values
-        self.email = config['email']
-        self.password = config['password']
         self.config = {
+            'email': None,
+            'password': None,
             'accesstoken': None,
             'refreshtoken': None,
             'userid': "",
@@ -93,12 +94,14 @@ class TooGoodToGo:
     def login(self):
         login = {
             'device_type': "UNKNOWN",
-            'email': self.email,
-            'password': self.password
+            'email': self.config['email'],
+            'password': self.config['password']
         }
 
         # disable access token to request a new one
         self.config['accesstoken'] = None
+
+        print("[+] authentication: login using <%s> email" % login['email'])
 
         r = self.post("/api/auth/v1/loginByEmail", login)
         data = r.json()
