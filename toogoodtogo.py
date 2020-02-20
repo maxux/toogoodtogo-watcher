@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 import smtplib
@@ -64,6 +65,16 @@ class TooGoodToGo:
             print("[+] writing configuration: %s" % self.cfgfile)
             f.write(json.dumps(self.config))
 
+    def isauthorized(self, payload):
+        if not payload.get("error"):
+            return True
+
+        if payload['error'] == 'Unauthorized':
+            print("[-] request: unauthorized request")
+            return False
+
+        return None
+
     def url(self, endpoint):
         return "%s%s" % (self.baseurl, endpoint)
 
@@ -86,8 +97,16 @@ class TooGoodToGo:
             'password': self.password
         }
 
+        # disable access token to request a new one
+        self.config['accesstoken'] = None
+
         r = self.post("/api/auth/v1/loginByEmail", login)
         data = r.json()
+
+        if self.isauthorized(data) == False:
+            print("[-] authentication: login failed, unauthorized")
+            self.rawnotifier("Could not authenticate watcher, stopping.")
+            sys.exit(1)
 
         self.config['accesstoken'] = data['access_token']
         self.config['refreshtoken'] = data['refresh_token']
@@ -100,6 +119,10 @@ class TooGoodToGo:
         ref = self.post('/api/auth/v1/token/refresh', data)
 
         payload = ref.json()
+        if self.isauthorized(payload) == False:
+            print("[-] authentication: refresh failed, re-loggin")
+            return self.login()
+
         self.config['accesstoken'] = payload['access_token']
 
         print("[+] new token: %s" % self.config['accesstoken'])
@@ -186,6 +209,10 @@ class TooGoodToGo:
 
             print("[+]")
 
+    def rawnotifier(self, message):
+        fmt = telegram.ParseMode.MARKDOWN
+        self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
+
     def notifier(self, item):
         name = item['display_name']
         items = item['items_available']
@@ -209,6 +236,11 @@ class TooGoodToGo:
 
         while True:
             fav = self.favorite()
+            if self.isauthorized(fav) == False:
+                print("[-] favorites: unauthorized request, refreshing token")
+                self.refresh()
+                continue
+
             self.available(fav)
 
             #
