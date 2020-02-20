@@ -81,7 +81,7 @@ class TooGoodToGo:
 
     def post(self, endpoint, json):
         headers = {
-            'User-Agent': 'TGTG/19.12.0 (724) (Android/Unknown; Scale/3.00)',
+            'User-Agent': 'TooGoodToGo/20.1.1 (732) (iPhone/iPhone SE (GSM); iOS 13.3.1; Scale/2.00)',
             'Accept': "application/json",
             'Accept-Language': "en-US"
         }
