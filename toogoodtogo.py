@@ -214,6 +214,114 @@ class TooGoodToGo:
 
             print("[+]")
 
+    #
+    # STAGING BASKET / CHECKOUT
+    #
+    def basket(self, itemid):
+        payload = {
+            "supported_payment_providers": [
+                {
+                    "payment_provider": {
+                        "provider_id": "VOUCHER",
+                        "provider_version": 1
+                    },
+                    "payment_types": [
+                        "VOUCHER"
+                    ]
+                },
+                {
+                    "payment_provider": {
+                        "provider_id": "ADYEN",
+                        "provider_version": 1
+                    },
+                    "payment_types": [
+                        "CREDITCARD",
+                        "PAYPAL",
+                        "IDEAL",
+                        "SOFORT",
+                        "VIPPS",
+                        "BCMCMOBILE",
+                        "DOTPAY",
+                        "APPLEPAY"
+                    ]
+                },
+                {
+                    "payment_provider": {
+                        "provider_id": "PAYPAL",
+                        "provider_version": 1
+                    },
+                    "payment_types": [
+                        "PAYPAL"
+                    ]
+                }
+            ],
+            "user_id": self.config['userid']
+        }
+
+        r = self.post("/api/item/v4/%s/basket" % itemid, payload)
+        data = r.json()
+
+        if data['create_basket_state'] == 'SUCCESS':
+            basketid = data['basket_id']
+            print("[+] basket created: %s" % basketid)
+
+            self.checkout(basketid)
+
+        pass
+
+    def checkout(self, basketid):
+        now = datetime.datetime.now().replace(microsecond=0).isoformat() + "Z"
+
+        paymentsdk = {
+            "locale": "en_BE",
+            "deviceIdentifier": "",
+            "platform": "ios",
+            "osVersion": "13.3.1",
+            "integration": "quick",
+            "sdkVersion": "2.8.5",
+            "deviceFingerprintVersion": "1.0",
+            "generationTime": now,
+            "deviceModel": "iPhone8,4"
+        }
+
+        sdkkey = json.dumps(paymentsdk)
+
+        payload = {
+            "items_count": 1,
+            "payment_provider": {
+                "provider_id": "ADYEN",
+                "provider_version": 1
+            },
+            "payment_sdk_key": base64.b64encode(sdkkey.encode('utf-8')),
+            "payment_types": [
+                "CREDITCARD",
+                "APPLEPAY",
+                "BCMCMOBILE",
+                "PAYPAL"
+            ],
+            "return_url": "toogoodtogoapp://"
+        }
+
+        print(payload)
+
+        r = self.post("/api/basket/v2/%s/checkout" % basketid, payload)
+        data = r.json()
+
+        print(data)
+
+        if data['result'] == 'CONTINUE_PAYMENT':
+            print("OK OK")
+
+        pass
+
+    def debug(self):
+        self.basket("43351i2634099")
+        print("debug")
+
+    #
+    #
+    #
+
     def rawnotifier(self, message):
         fmt = telegram.ParseMode.MARKDOWN
         self.bot.send_message(chat_id=config['telegram-chat-id'], text=message, parse_mode=fmt)
