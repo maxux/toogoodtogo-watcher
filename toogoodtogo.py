@@ -137,11 +137,13 @@ class TooGoodToGo:
                 'longitude': config['longitude']
             },
             'radius': 200,
-            'user_id': self.config['userid']
+            'user_id': self.config['userid'],
+            'page': 1,
+            'page_size': 20
         }
 
         while True:
-            r = self.post("/api/item/v3/", data)
+            r = self.post("/api/item/v4/", data)
             if r.status_code == 502:
                 continue
 
