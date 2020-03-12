@@ -146,21 +146,20 @@ class TooGoodToGo:
         }
 
         while True:
-            r = self.post("/api/item/v4/", data)
-            if r.status_code == 502:
-                continue
-
-            if r.status_code == 200:
-                return r.json()
-
             try:
-                r.json()
+                r = self.post("/api/item/v4/", data)
+                if r.status_code >= 500:
+                    continue
+
+                if r.status_code == 200:
+                    return r.json()
 
             except Exception as e:
                 print(r.text)
                 print(e)
 
-            return r.json()
+            time.sleep(1)
+
 
     def datetimeparse(self, datestr):
         fmt = "%Y-%m-%dT%H:%M:%SZ"
