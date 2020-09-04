@@ -17,8 +17,8 @@ class TooGoodToGo:
 
         # default values
         self.config = {
-            'email': None,
-            'password': None,
+            'email': config['email'],
+            'password': config['password'],
             'accesstoken': None,
             'refreshtoken': None,
             'userid': "",
