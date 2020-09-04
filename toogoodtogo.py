@@ -147,7 +147,7 @@ class TooGoodToGo:
 
         while True:
             try:
-                r = self.post("/api/item/v4/", data)
+                r = self.post("/api/item/v5/", data)
                 if r.status_code >= 500:
                     continue
 
