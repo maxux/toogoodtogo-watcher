@@ -155,7 +155,6 @@ class TooGoodToGo:
                     return r.json()
 
             except Exception as e:
-                print(r.text)
                 print(e)
 
             time.sleep(1)
@@ -391,4 +390,5 @@ class TooGoodToGo:
 
 if __name__ == '__main__':
     tgtg = TooGoodToGo()
+    # tgtg.debug()
     tgtg.watch()
